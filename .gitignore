@@ -1,0 +1,6 @@
+/build/
+/build-ref/
+*.pyc
+*.bak
+/test/nv_plotlines.py
+/test/work/
