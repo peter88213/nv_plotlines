@@ -2,15 +2,19 @@
 
 --- 
 
-A [novelibre](https://github.com/peter88213/novelibre/) plugin for importing/exporting plot lines from/to Markdown files. 
+A [novelibre](https://github.com/peter88213/novelibre/) plugin for viewing plot lines. 
 
 ---
 
 # Installation
 
-If [novelibre](https://github.com/peter88213/novelibre/) is installed, the setup script *setup.py* installs the *nv_plotlines* plugin in the *novelibre* plugin directory.
+- Unzip the downloaded zipfile into a new folder.
+- Move into this new folder and launch **setup.pyw**. This installs the plugin.
 
-The plugin adds a **Plot lines import/export** entry to the *novelibre* **Tools** menu, and a **Plot lines import/export Online Help** entry to the **Help** menu. 
+*Note: If you install novelibre at a later time, you can always install the plugin afterwards by running the nv_tlview setup script again.*
+
+The plugin adds a **Plot lines view** entry to the *novelibre* **Tools** menu,
+and a **Plot lines view Online help** entry to the **Help** menu.
 
 ---
 

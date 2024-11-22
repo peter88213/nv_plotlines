@@ -1,10 +1,4 @@
-"""A Plot lines import/export plugin for novelibre. 
-
-Version @release
-
-Adds a 'Add Story Templates' entry to the 'Tools' menu to open a window
-with a combobox that lists all available themes. 
-The selected theme will be persistently applied.  
+"""A Plot lines view plugin for novelibre. 
 
 Requires Python 3.6+
 Copyright (c) 2024 Peter Triesberger
@@ -21,17 +15,12 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 """
-import os
 from pathlib import Path
-from tkinter import filedialog
-from tkinter import messagebox
-import webbrowser
+from tkinter import ttk
 
 from nvlib.controller.plugin.plugin_base import PluginBase
-from nvplotlineslib.md_plotlines import MdTemplate
-from nvplotlineslib.nvplotlines_globals import Error
 from nvplotlineslib.nvplotlines_globals import _
-from nvplotlineslib.nvplotlines_globals import norm_path
+from nvtlviewlib.nvtlview_globals import open_help
 import tkinter as tk
 
 
@@ -43,23 +32,28 @@ class Plugin(PluginBase):
     URL = 'https://github.com/peter88213/nv_plotlines'
     _HELP_URL = f'{_("https://peter88213.github.io/nvhelp-en")}/nv_plotlines/'
 
-    FEATURE = _('Plot lines import/export')
+    FEATURE = _('Plot lines view')
+    SETTINGS = dict(
+        window_geometry='600x800',
+    )
+    OPTIONS = dict(
+    )
 
     def disable_menu(self):
         """Disable menu entries when no project is open.
         
         Overrides the superclass method.
         """
-        self._templatesMenu.entryconfig(f"{_('Load')}...", state='disabled')
-        self._templatesMenu.entryconfig(f"{_('Save')}...", state='disabled')
+        self._ui.toolsMenu.entryconfig(self.FEATURE, state='disabled')
+        self._plButton.config(state='disabled')
 
     def enable_menu(self):
         """Enable menu entries when a project is open.
         
         Overrides the superclass method.
         """
-        self._templatesMenu.entryconfig(f"{_('Load')}...", state='normal')
-        self._templatesMenu.entryconfig(f"{_('Save')}...", state='normal')
+        self._ui.toolsMenu.entryconfig(self.FEATURE, state='normal')
+        self._plButton.config(state='normal')
 
     def install(self, model, view, controller):
         """Add a submenu to the 'Tools' menu.
@@ -75,73 +69,75 @@ class Plugin(PluginBase):
         Extends the superclass method.
         """
         super().install(model, view, controller)
+        #--- Load configuration.
         try:
             homeDir = str(Path.home()).replace('\\', '/')
-            self._templateDir = f'{homeDir}/.novx/templates'
+            configDir = f'{homeDir}/.novx/config'
         except:
-            self._templateDir = '.'
+            configDir = '.'
+        self.iniFile = f'{configDir}/plview.ini'
+        self.configuration = self._mdl.nvService.make_configuration(
+            settings=self.SETTINGS,
+            options=self.OPTIONS
+            )
+        self.configuration.read(self.iniFile)
+        self.kwargs = {}
+        self.kwargs.update(self.configuration.settings)
+        self.kwargs.update(self.configuration.options)
 
-        # Create "Story Templates" submenu.
-        self._templatesMenu = tk.Menu(self._ui.toolsMenu, tearoff=0)
-        self._templatesMenu.add_command(label=f"{_('Load')}...", command=self._load_template)
-        self._templatesMenu.add_command(label=f"{_('Save')}...", command=self._save_template)
-        self._templatesMenu.add_command(label=_('Open folder'), command=self._open_folder)
-
-        # Create Tools menu entry.
-        self._ui.toolsMenu.add_cascade(label=self.FEATURE, menu=self._templatesMenu)
-        self._fileTypes = [(MdTemplate.DESCRIPTION, MdTemplate.EXTENSION)]
+        # Add an entry to the Tools menu.
+        self._ui.toolsMenu.add_command(label=self.FEATURE, command=self._open_viewer)
+        self._ui.toolsMenu.entryconfig(self.FEATURE, state='disabled')
 
         # Add an entry to the Help menu.
-        self._ui.helpMenu.add_command(label=_('Plot lines import/export plugin Online help'), command=lambda: webbrowser.open(self._HELP_URL))
+        self._ui.helpMenu.add_command(label=_('Plot lines view Online help'), command=open_help)
 
-    def _load_template(self):
-        """Create a structure of "Todo" chapters and scenes from a Markdown file."""
-        fileName = filedialog.askopenfilename(
-            filetypes=self._fileTypes,
-            defaultextension=self._fileTypes[0][1],
-            initialdir=self._templateDir
-            )
-        if fileName:
-            try:
-                templates = MdTemplate(fileName, self._mdl, self._ctrl)
-                templates.read()
-            except Error as ex:
-                messagebox.showerror(_('Template loading aborted'), str(ex))
+        #--- Configure the toolbar.
+        self._configure_toolbar()
 
-    def _new_project(self):
-        """Create a novelibre project instance."""
-        self._ctrl.new_project()
-        self._load_template()
+    def _configure_toolbar(self):
 
-    def _open_folder(self):
-        """Open the templates folder with the OS file manager."""
+        # Get the icons.
+        prefs = self._ctrl.get_preferences()
+        if prefs.get('large_icons', False):
+            size = 24
+        else:
+            size = 16
         try:
-            os.startfile(norm_path(self._templateDir))
-            # Windows
+            homeDir = str(Path.home()).replace('\\', '/')
+            iconPath = f'{homeDir}/.novx/icons/{size}'
         except:
-            try:
-                os.system('xdg-open "%s"' % norm_path(self._templateDir))
-                # Linux
-            except:
-                try:
-                    os.system('open "%s"' % norm_path(self._templateDir))
-                    # Mac
-                except:
-                    pass
+            iconPath = None
+        try:
+            tlIcon = tk.PhotoImage(file=f'{iconPath}/plview.png')
+        except:
+            tlIcon = None
 
-    def _save_template(self):
-        """Save a structure of "Todo" chapters and scenes to a Markdown file."""
-        fileName = filedialog.asksaveasfilename(filetypes=self._fileTypes,
-                                              defaultextension=self._fileTypes[0][1],
-                                              initialdir=self._templateDir)
-        if not fileName:
+        # Put a Separator on the toolbar.
+        tk.Frame(self._ui.toolbar.buttonBar, bg='light gray', width=1).pack(side='left', fill='y', padx=4)
+
+        # Put a button on the toolbar.
+        self._tlButton = ttk.Button(
+            self._ui.toolbar.buttonBar,
+            text=self.FEATURE,
+            image=tlIcon,
+            command=self._open_viewer
+            )
+        self._tlButton.pack(side='left')
+        self._tlButton.image = tlIcon
+
+        # Initialize tooltip.
+        if not prefs['enable_hovertips']:
             return
 
         try:
-            templates = MdTemplate(fileName, self._mdl, self._ctrl)
-            templates.write()
-        except Error as ex:
-            messagebox.showerror(_('Cannot save template'), str(ex))
+            from idlelib.tooltip import Hovertip
+        except ModuleNotFoundError:
+            return
 
-        self._ui.set_status(_('Template saved.'))
+        Hovertip(self._tlButton, self._tlButton['text'])
+
+    def _open_viewer(self):
+        if not self._mdl.prjFile:
+            return
 

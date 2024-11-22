@@ -8,7 +8,7 @@
 
 The [novelibre](https://github.com/peter88213/novelibre/) Python program helps authors organize novels.
 
-*nv_plotlines* is a plugin for importing/exporting plot lines from/to Markdown files.
+*nv_plotlines* is a plugin for viewing plot lines.
 
 ![Screenshot](docs/Screenshots/screen01.png)
 
