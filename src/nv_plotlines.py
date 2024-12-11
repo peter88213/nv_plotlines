@@ -30,7 +30,7 @@ class Plugin(PluginBase):
     API_VERSION = '5.0'
     DESCRIPTION = 'A Plot lines importer/exporter'
     URL = 'https://github.com/peter88213/nv_plotlines'
-    _HELP_URL = f'{_("https://peter88213.github.io/nvhelp-en")}/nv_plotlines/'
+    HELP_URL = f'{_("https://peter88213.github.io/nvhelp-en")}/nv_plotlines/'
 
     FEATURE = _('Plot lines view')
     SETTINGS = dict(
