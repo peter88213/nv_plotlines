@@ -18,7 +18,7 @@ VERSION = '0.1.0'
 class PluginBuilder(PackageBuilder):
 
     PRJ_NAME = 'nv_plotlines'
-    LOCAL_LIB = 'nvplotlineslib'
+    LOCAL_LIB = 'nvplotlines'
     GERMAN_TRANSLATION = True
 
 

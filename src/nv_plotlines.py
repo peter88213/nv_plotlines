@@ -17,10 +17,11 @@ GNU General Public License for more details.
 """
 from pathlib import Path
 from tkinter import ttk
+import webbrowser
 
 from nvlib.controller.plugin.plugin_base import PluginBase
-from nvplotlineslib.nvplotlines_globals import _
-from nvtlviewlib.nvtlview_globals import open_help
+from nvplotlines.nvplotlines_locale import _
+from nvplotlines.plotlines_service import PlotlinesService
 import tkinter as tk
 
 
@@ -33,11 +34,6 @@ class Plugin(PluginBase):
     HELP_URL = f'{_("https://peter88213.github.io/nvhelp-en")}/nv_plotlines/'
 
     FEATURE = _('Plot lines view')
-    SETTINGS = dict(
-        window_geometry='600x800',
-    )
-    OPTIONS = dict(
-    )
 
     def disable_menu(self):
         """Disable menu entries when no project is open.
@@ -69,28 +65,14 @@ class Plugin(PluginBase):
         Extends the superclass method.
         """
         super().install(model, view, controller)
-        #--- Load configuration.
-        try:
-            homeDir = str(Path.home()).replace('\\', '/')
-            configDir = f'{homeDir}/.novx/config'
-        except:
-            configDir = '.'
-        self.iniFile = f'{configDir}/plview.ini'
-        self.configuration = self._mdl.nvService.new_configuration(
-            settings=self.SETTINGS,
-            options=self.OPTIONS
-            )
-        self.configuration.read(self.iniFile)
-        self.kwargs = {}
-        self.kwargs.update(self.configuration.settings)
-        self.kwargs.update(self.configuration.options)
+        self.plotlinesService = PlotlinesService(model, view, controller)
 
         # Add an entry to the Tools menu.
-        self._ui.toolsMenu.add_command(label=self.FEATURE, command=self._open_viewer)
+        self._ui.toolsMenu.add_command(label=self.FEATURE, command=self.start_viewer)
         self._ui.toolsMenu.entryconfig(self.FEATURE, state='disabled')
 
         # Add an entry to the Help menu.
-        self._ui.helpMenu.add_command(label=_('Plot lines view Online help'), command=open_help)
+        self._ui.helpMenu.add_command(label=_('Plot lines view Online help'), command=self.open_help)
 
         #--- Configure the toolbar.
         self._configure_toolbar()
@@ -121,7 +103,7 @@ class Plugin(PluginBase):
             self._ui.toolbar.buttonBar,
             text=self.FEATURE,
             image=tlIcon,
-            command=self._open_viewer
+            command=self.start_viewer
             )
         self._tlButton.pack(side='left')
         self._tlButton.image = tlIcon
@@ -137,7 +119,9 @@ class Plugin(PluginBase):
 
         Hovertip(self._tlButton, self._tlButton['text'])
 
-    def _open_viewer(self):
-        if not self._mdl.prjFile:
-            return
+    def open_help(self, event=None):
+        webbrowser.open(self.HELP_URL)
+
+    def start_viewer(self):
+        self.plotlinesService.start_viewer(self.FEATURE)
 
