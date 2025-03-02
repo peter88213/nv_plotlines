@@ -96,14 +96,14 @@ class Plugin(PluginBase):
         tk.Frame(self._ui.toolbar.buttonBar, bg='light gray', width=1).pack(side='left', fill='y', padx=4)
 
         # Put a button on the toolbar.
-        self._tlButton = ttk.Button(
+        self._plButton = ttk.Button(
             self._ui.toolbar.buttonBar,
             text=self.FEATURE,
             image=tlIcon,
             command=self.start_viewer
             )
-        self._tlButton.pack(side='left')
-        self._tlButton.image = tlIcon
+        self._plButton.pack(side='left')
+        self._plButton.image = tlIcon
 
         # Initialize tooltip.
         if not prefs['enable_hovertips']:
@@ -114,7 +114,7 @@ class Plugin(PluginBase):
         except ModuleNotFoundError:
             return
 
-        Hovertip(self._tlButton, self._tlButton['text'])
+        Hovertip(self._plButton, self._plButton['text'])
 
     def open_help(self, event=None):
         webbrowser.open(self.HELP_URL)
